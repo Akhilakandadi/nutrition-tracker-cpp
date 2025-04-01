@@ -1,0 +1,35 @@
+.progress-container {
+    width: 100%;
+    background-color: #ddd;
+    border-radius: 10px;
+    height: 30px;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background-color: #4CAF50; /* Green */
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    transition: width 0.5s;
+}
+
+.message {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.message.warning {
+    background-color: #ffcc00;
+    color: black;
+}
+
+.message.success {
+    background-color: #4CAF50;
+    color: white;
+}

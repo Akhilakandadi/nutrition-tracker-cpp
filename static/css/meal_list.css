@@ -1,0 +1,106 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    
+
+}
+
+h1, h2 {
+    text-align: center;
+    color: #333;
+}
+
+/* Navbar and Buttons */
+a {
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.49);
+    font-size: 16px;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 10px;
+}
+
+button:hover {
+    background-color: #00b34b;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 20px;
+}
+
+li {
+    background-color: #fff;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+li a {
+    color: red;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+li a:hover {
+    color: darkred;
+}
+
+/* Chart Container */
+h2 {
+    margin-top: 30px;
+    color: #333;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
+    height: 400px;
+}
+
+/* Meal Info */
+p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #555;
+}
+
+/* Logout Form */
+form {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+form button {
+    padding: 12px 30px;
+    background-color: #dc3545;
+    font-size: 16px;
+}
+
+form button:hover {
+    background-color: #c82333;
+}
+
+
+

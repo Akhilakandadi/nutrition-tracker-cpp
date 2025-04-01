@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/edit_profile.css' %}">
+    <title>Edit Profile</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Your Profile</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}  <!-- Dynamic form fields -->
+            <button type="submit">Save Changes</button>
+        </form>
+        <a href="{% url 'profile_info' %}"><button class="cancel-btn">Cancel</button></a>
+        {% if form.errors %}
+            <p class="error-message">Please fix the errors above.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

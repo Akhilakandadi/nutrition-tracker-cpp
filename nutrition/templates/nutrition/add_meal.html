@@ -1,0 +1,30 @@
+{% load static %}  <!-- Load the static template tag to reference static files like CSS -->
+<!DOCTYPE html>  <!-- Declare the document type as HTML5 -->
+<html>
+<head>
+    <!-- Link to the external CSS file for styling, served from static directory (e.g., S3 in your setup) -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/add_meal.css' %}">
+
+    <title>Add Meal</title>  <!-- Set the page title displayed in the browser tab -->
+</head>
+<body>
+    <h2>Add a Meal</h2>  <!-- Heading for the add meal page -->
+
+    <!-- Display an error message in red if the 'error' variable is set (e.g., "Food not found") -->
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>  <!-- Inline CSS for error text color -->
+    {% endif %}
+    
+    <!-- Form to input food name and fetch nutrition data -->
+    <form method="POST">  <!-- POST method to submit food name to the add_meal view -->
+        {% csrf_token %}  <!-- Include CSRF token for security against cross-site request forgery -->
+        <label for="food_name">Enter Food Name:</label>  <!-- Label for the input field -->
+        <input type="text" id="food_name" name="food_name" required>  <!-- Text input for food name, required field -->
+        <button type="submit">Get Nutrition</button>  <!-- Submit button to fetch nutrition data -->
+    </form>
+    
+    <!-- Display nutrition data if available from the view -->
+    {% if nutrition_data %}
+        <h3>Nutrition for {{ nutrition_data.name }}</h3>  <!-- Heading with the food name from nutrition_data -->
+        <p><strong>Calories:</strong> {{ nutrition_data.calories }}
+    {% endif %}

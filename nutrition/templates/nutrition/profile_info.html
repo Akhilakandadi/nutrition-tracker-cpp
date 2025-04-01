@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Info</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/profile_info.css' %}">
+</head>
+<body>
+
+    <h1>Your Profile Info</h1>
+    <div class="profile-container">
+        <p><strong>Username:</strong> {{ profile.user.username }}</p>
+        <p><strong>Age:</strong> {{ profile.age }}</p>
+        <p><strong>Weight:</strong> {{ profile.weight }} kg</p>
+        <p><strong>Height:</strong> {{ profile.height }} cm</p>
+        <p><strong>Medical Conditions:</strong> {{ profile.medical_conditions }}</p>
+
+        <a href="{% url 'edit_profile' %}" class="button">Edit Profile</a>
+    </div>
+
+</body>
+</html>

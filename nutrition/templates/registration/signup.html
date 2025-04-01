@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/sign_up.css' %}">
+</head>
+<body>
+    <h1>Create an Account</h1>
+    <form method="post">
+        {% csrf_token %}
+        
+        <h3>User Information</h3>
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" required><br> <!-- Add email field -->
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required><br>
+
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" name="confirm_password" id="confirm_password" required><br>
+        
+        <h3>Additional Profile Information</h3>
+        <label for="age">Age:</label>
+        <input type="number" name="age" id="age" min="1" required><br>
+
+        <label for="weight">Weight:</label>
+        <input type="number" name="weight" id="weight" step="0.1" min="1" required><br>
+
+        <label for="weight_unit">Weight Unit:</label>
+        <select name="weight_unit" id="weight_unit">
+            <option value="kg">Kilograms (kg)</option>
+            <option value="lbs">Pounds (lbs)</option>
+        </select><br>
+
+        <label for="height">Height (cm):</label>
+        <input type="number" name="height" id="height" min="1" required><br>
+
+        <label for="medical_conditions">Medical Conditions:</label>
+        <textarea name="medical_conditions" id="medical_conditions" rows="4" cols="50"></textarea><br>
+        
+        <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+</body>
+</html>

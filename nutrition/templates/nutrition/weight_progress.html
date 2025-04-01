@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weight Progress Tracker</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/weight_progress.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #weightChart {
+            max-width: 600px;
+            height: 400px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weight Progress Tracker</h1>
+    
+    <!-- Form for Logging Weight -->
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Log Weight</button>
+    </form>
+    
+    <!-- Canvas element for the chart -->
+    <canvas id="weightChart"></canvas>
+    
+    <!-- List Weight Logs -->
+    <h2>Your Weight Logs</h2>
+    <ul>
+        {% for log in weight_logs %}
+            <li>{{ log.date }} - {{ log.weight }} kg</li>
+        {% endfor %}
+    </ul>
+    
+    <a href="{% url 'meal_list' %}">Back to Dashboard</a>
+    
+    <!-- Chart.js Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctx = document.getElementById('weightChart').getContext('2d');
+            var chartData = JSON.parse('{{ chart_data|escapejs }}');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: chartData.datasets[0].label,
+                        data: chartData.datasets[0].data,
+                        borderColor: chartData.datasets[0].borderColor,
+                        backgroundColor: chartData.datasets[0].backgroundColor,
+                        fill: chartData.datasets[0].fill,
+                        tension: chartData.datasets[0].tension,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        });
+    </script>
+</body>
+</html>

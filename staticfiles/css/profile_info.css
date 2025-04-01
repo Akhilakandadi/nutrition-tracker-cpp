@@ -1,0 +1,97 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Heading Styling with Higher Specificity */
+body h1 {
+    text-align: center !important; /* Force centering */
+    color: #2c6e49;
+    margin-bottom: 40px;
+    font-size: 2.5em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    padding-top: 20px;
+    position: relative; /* Ensure it stays at top */
+    top: 0;
+}
+
+/* Profile Container Styling */
+.profile-container {
+    max-width: 600px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    width: 100%;
+}
+
+/* Paragraph Styling */
+.profile-container p {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.profile-container p strong {
+    color: #2c6e49;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* Button Styling */
+.button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #4CAF50;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .profile-container {
+        max-width: 100%;
+        padding: 20px;
+    }
+
+    body h1 {
+        font-size: 2em;
+    }
+
+    .profile-container p {
+        font-size: 1em;
+    }
+
+    .button {
+        width: 100%;
+        padding: 10px;
+    }
+}

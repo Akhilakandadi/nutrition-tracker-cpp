@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Water Intake</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/track_water.css' %}">
+</head>
+<body>
+    <h1>Water Intake Tracker 💧</h1>
+
+    <!-- Daily Water Goal -->
+    <h3>Your Daily Goal: {{ daily_goal }} ml</h3>
+
+    <p>Total Water Consumed Today: {{ total_water }} ml</p>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" style="width: {{ progress|default:0|floatformat:0 }}%;"></div>
+
+
+    </div>
+
+    <!-- Message if behind on goal -->
+    {% if messages %}
+        {% for message in messages %}
+            <p class="message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Water Intake Form -->
+    <h3>Log Your Water Intake:</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Water Intake</button>
+    </form>
+
+    <!-- Update Water Goal -->
+    <h3>Set Your Daily Goal:</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ goal_form.as_p }}
+        <button type="submit" name="update_goal">Update Goal</button>
+    </form>
+
+    <h3>Today's Entries:</h3>
+    <ul>
+        {% for entry in water_intakes %}
+            <li>{{ entry.amount }} ml</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'meal_list' %}">Back to Dashboard</a>
+</body>
+</html>

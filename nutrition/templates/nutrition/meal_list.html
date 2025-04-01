@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nutrition Tracker</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/meal_list.css' %}">
+
+</head>
+<body>
+    <h1>Meal Tracker</h1>
+
+    {% if user.is_authenticated %}
+        <p>Welcome, {{ user.username }}!</p>
+        
+        <p>Total Calories: {{ total_calories }} kcal</p>
+
+        <a href="{% url 'add_meal' %}" class="add-meal-link">Add New Meal</a>
+
+
+        <ul>
+            {% for meal in meals %}
+                <li>
+                    {{ meal.name }} - {{ meal.calories }} kcal
+                    <a href="{% url 'delete_meal' meal.id %}">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        
+
+        <body style="background-image: url('/static/images/image1.png.avif'); background-size: cover;">
+
+        <a href="{% url 'track_water' %}"><button>Track Water Intake</button></a>
+        <a href="{% url 'weight_progress' %}"><button>Track Weight Progress</button></a>
+   <!-- Button to view profile -->
+        <a href="{% url 'profile_info' %}"><button>Profile Info</button></a>
+
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+
+    {% else %}
+        <a href="{% url 'login' %}">Login</a>
+    {% endif %}
+</body>
+</html>
