@@ -56,7 +56,6 @@ def delete_meal(request, meal_id):
     return redirect('meal_list')  # Redirect back to meal list
 """ 
 def signup(request):
-    """Handle user registration and automatic login."""
     if request.method == 'POST':  # Process form submission
         user_form = SignUpForm(request.POST)  # Form for basic user data
         profile_form = UserProfileForm(request.POST)  # Form for additional profile data
