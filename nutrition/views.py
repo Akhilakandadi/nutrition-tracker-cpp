@@ -54,7 +54,7 @@ def delete_meal(request, meal_id):
     meal = Meal.objects.get(id=meal_id, user=request.user)  # Fetch the meal by ID, ensuring it belongs to the user
     meal.delete()  # Remove the meal from the database
     return redirect('meal_list')  # Redirect back to meal list
-
+""" 
 def signup(request):
     """Handle user registration and automatic login."""
     if request.method == 'POST':  # Process form submission
@@ -81,6 +81,40 @@ def signup(request):
         profile_form = UserProfileForm()  # Empty profile form
 
     return render(request, 'registration/signup.html', {  # Render signup template
+        'user_form': user_form,
+        'profile_form': profile_form
+    }) """
+
+
+def signup(request):
+    """Handle user registration and automatic login."""
+    if request.method == 'POST':  
+        user_form = SignUpForm(request.POST)  
+        profile_form = UserProfileForm(request.POST)  
+
+        if user_form.is_valid() and profile_form.is_valid():  
+            user = user_form.save(commit=False)  # Create user but don't save yet
+            user.set_password(user.password)  # Hash the password
+            user.save()  # Now save the user
+            
+            # Check if UserProfile already exists to prevent duplicates
+            profile, created = UserProfile.objects.get_or_create(user=user, defaults={**profile_form.cleaned_data})
+
+            if created:  # If a new profile was created
+                messages.success(request, "Your account has been created and you're now logged in.")
+            else:
+                messages.warning(request, "UserProfile already existed, updated instead.")
+
+            login(request, user)  # Log the user in immediately
+            return redirect('meal_list')  # Redirect to meal list
+        else:
+            messages.error(request, "Please fix the errors below.")  # Show form errors
+    
+    else:  
+        user_form = SignUpForm()  
+        profile_form = UserProfileForm()  
+
+    return render(request, 'registration/signup.html', {  
         'user_form': user_form,
         'profile_form': profile_form
     })
