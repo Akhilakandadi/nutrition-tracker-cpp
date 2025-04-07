@@ -1,208 +1,210 @@
 # Standard Django imports
-from django.contrib import messages  # For displaying success/error messages to users
-from django.contrib.auth import login, logout as auth_logout  # For user authentication (login/logout)
-from django.contrib.auth.decorators import login_required  # Decorator to restrict views to logged-in users
-from django.contrib.auth.forms import UserCreationForm  # Built-in form for user registration
-from django.contrib.auth.models import User  # Django's User model for authentication
-from django.shortcuts import render, redirect  # Utilities for rendering templates and redirecting
-from django.utils.timezone import now  # For getting the current date/time in timezone-aware format
+from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.utils.timezone import now
+
+# Custom library import
+from nutrition_tracker_lib import NutritionTracker
 
 # Local app imports
-from .forms import SignUpForm, UserProfileForm, WaterIntakeForm, WaterGoalForm, WeightLogForm  # Custom forms for user input
-from .models import Meal, UserProfile, WaterIntake, WaterGoal, WeightLog  # Database models for app data
-from .utils import get_nutrition  # Utility function to fetch nutritional data (e.g., from USDA API)
+from .forms import SignUpForm, UserProfileForm, WaterIntakeForm, WaterGoalForm, WeightLogForm
+from .models import Meal, UserProfile, WaterIntake, WaterGoal, WeightLog
 
 # Views
 
-@login_required  # Ensures only authenticated users can access this view
+@login_required
 def meal_list(request):
-    """Display a list of meals for the logged-in user with total calories."""
-    meals = Meal.objects.filter(user=request.user)  # Fetch all meals associated with the current user
-    total_calories = sum(meal.calories for meal in meals)  # Calculate total calories from all meals
-    return render(request, 'nutrition/meal_list.html', {  # Render the meal list template
-        'meals': meals,  # Pass meals QuerySet to template
-        'total_calories': total_calories  # Pass total calories to template
+    """Display a list of meals with a summary using NutritionTracker."""
+    tracker = NutritionTracker()
+    meals = Meal.objects.filter(user=request.user)
+    
+    # Sync database meals with tracker
+    for meal in meals:
+        tracker.log_meal(
+            food_name=meal.name,
+            calories=meal.calories,
+            protein=meal.protein,
+            carbs=meal.carbs,
+            fats=meal.fats
+        )
+    
+    summary = tracker.get_meal_summary()
+    return render(request, 'nutrition/meal_list.html', {
+        'meals': meals,
+        'total_calories': summary['total_calories'],
+        'total_meals': summary['total_meals']
     })
 
-@login_required  # Restricts access to logged-in users
+@login_required
 def add_meal(request):
-    """Handle adding a new meal with nutritional data from an external source."""
-    if request.method == "POST":  # Check if the request is a form submission
-        food_name = request.POST['food_name']  # Get food name from form input
-        nutrition_data = get_nutrition(food_name)  # Fetch nutritional info using utility function
+    """Add a new meal using NutritionTracker to fetch and log data."""
+    tracker = NutritionTracker()
+    if request.method == "POST":
+        food_name = request.POST['food_name']
+        nutrition_data = tracker.fetch_nutrition_data(food_name)
 
-        if nutrition_data:  # If data is successfully retrieved
-            if "add_to_meal" in request.POST:  # Check if user clicked "Add to Meal" button
-                Meal.objects.create(  # Create a new Meal object in the database
-                    user=request.user,  # Associate with current user
+        if nutrition_data:
+            if "add_to_meal" in request.POST:
+                # Save to database
+                Meal.objects.create(
+                    user=request.user,
                     name=nutrition_data['name'],
                     calories=nutrition_data['calories'],
                     protein=nutrition_data['protein'],
                     carbs=nutrition_data['carbs'],
                     fats=nutrition_data['fats']
                 )
-                return redirect('meal_list')  # Redirect to meal list after saving
-            return render(request, 'nutrition/add_meal.html', {'nutrition_data': nutrition_data})  # Show nutrition data
+                # Log to tracker
+                tracker.log_meal(
+                    food_name=nutrition_data['name'],
+                    calories=nutrition_data['calories'],
+                    protein=nutrition_data['protein'],
+                    carbs=nutrition_data['carbs'],
+                    fats=nutrition_data['fats']
+                )
+                return redirect('meal_list')
+            return render(request, 'nutrition/add_meal.html', {'nutrition_data': nutrition_data})
         else:
-            return render(request, 'nutrition/add_meal.html', {"error": "Food not found"})  # Show error if no data
-
-    return render(request, 'nutrition/add_meal.html')  # Render empty form for GET request
-
-@login_required  # Requires user login
-def delete_meal(request, meal_id):
-    """Delete a specific meal entry for the logged-in user."""
-    meal = Meal.objects.get(id=meal_id, user=request.user)  # Fetch the meal by ID, ensuring it belongs to the user
-    meal.delete()  # Remove the meal from the database
-    return redirect('meal_list')  # Redirect back to meal list
-""" 
-def signup(request):
-    if request.method == 'POST':  # Process form submission
-        user_form = SignUpForm(request.POST)  # Form for basic user data
-        profile_form = UserProfileForm(request.POST)  # Form for additional profile data
-        
-        if user_form.is_valid() and profile_form.is_valid():  # Validate both forms
-            user = user_form.save()  # Save user to database
-            user.set_password(user.password)  # Hash the password
-            user.save()  # Save updated user
-
-            profile = profile_form.save(commit=False)  # Prepare profile without saving yet
-            profile.user = user  # Link profile to user
-            profile.save()  # Save profile to database
-
-            login(request, user)  # Log the user in immediately
-            messages.success(request, "Your account has been created and you're now logged in.")  # Success message
-            return redirect('meal_list')  # Redirect to meal list
-        else:
-            messages.error(request, "Please fix the errors below.")  # Error message if forms invalid
+            return render(request, 'nutrition/add_meal.html', {"error": "Food not found"})
     
-    else:  # For GET request
-        user_form = SignUpForm()  # Empty user form
-        profile_form = UserProfileForm()  # Empty profile form
+    return render(request, 'nutrition/add_meal.html')
 
-    return render(request, 'registration/signup.html', {  # Render signup template
-        'user_form': user_form,
-        'profile_form': profile_form
-    }) """
-
+@login_required
+def delete_meal(request, meal_id):
+    """Delete a meal entry for the logged-in user."""
+    meal = Meal.objects.get(id=meal_id, user=request.user)
+    meal.delete()
+    return redirect('meal_list')
 
 def signup(request):
     """Handle user registration and automatic login."""
-    if request.method == 'POST':  
-        user_form = SignUpForm(request.POST)  
-        profile_form = UserProfileForm(request.POST)  
+    if request.method == 'POST':
+        user_form = SignUpForm(request.POST)
+        profile_form = UserProfileForm(request.POST)
 
-        if user_form.is_valid() and profile_form.is_valid():  
-            user = user_form.save(commit=False)  # Create user but don't save yet
-            user.set_password(user.password)  # Hash the password
-            user.save()  # Now save the user
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save(commit=False)
+            user.set_password(user.password)
+            user.save()
             
-            # Check if UserProfile already exists to prevent duplicates
             profile, created = UserProfile.objects.get_or_create(user=user, defaults={**profile_form.cleaned_data})
-
-            if created:  # If a new profile was created
+            if created:
                 messages.success(request, "Your account has been created and you're now logged in.")
             else:
                 messages.warning(request, "UserProfile already existed, updated instead.")
 
-            login(request, user)  # Log the user in immediately
-            return redirect('meal_list')  # Redirect to meal list
+            login(request, user)
+            return redirect('meal_list')
         else:
-            messages.error(request, "Please fix the errors below.")  # Show form errors
+            messages.error(request, "Please fix the errors below.")
     
-    else:  
-        user_form = SignUpForm()  
-        profile_form = UserProfileForm()  
+    else:
+        user_form = SignUpForm()
+        profile_form = UserProfileForm()
 
-    return render(request, 'registration/signup.html', {  
+    return render(request, 'registration/signup.html', {
         'user_form': user_form,
         'profile_form': profile_form
     })
 
-@login_required  # Restricts to logged-in users
+@login_required
 def profile_info(request):
     """Display the user's profile information."""
-    profile, created = UserProfile.objects.get_or_create(user=request.user)  # Get or create user profile
-    return render(request, 'nutrition/profile_info.html', {'profile': profile})  # Render profile template
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    return render(request, 'nutrition/profile_info.html', {'profile': profile})
 
-@login_required  # Requires authentication
+@login_required
 def edit_profile(request):
     """Allow users to edit their profile information."""
-    profile = UserProfile.objects.get(user=request.user)  # Fetch user's existing profile
+    profile = UserProfile.objects.get(user=request.user)
 
-    if request.method == "POST":  # Handle form submission
-        form = UserProfileForm(request.POST, instance=profile)  # Populate form with existing profile data
-        if form.is_valid():  # Validate form
-            form.save()  # Save updated profile
-            return redirect('profile_info')  # Redirect to profile info page
-    else:  # For GET request
-        form = UserProfileForm(instance=profile)  # Pre-fill form with current profile data
+    if request.method == "POST":
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile_info')
+    else:
+        form = UserProfileForm(instance=profile)
 
-    return render(request, 'nutrition/edit_profile.html', {'form': form})  # Render edit form
+    return render(request, 'nutrition/edit_profile.html', {'form': form})
 
-@login_required  # Ensures user is logged in
+@login_required
 def track_water(request):
-    """Track daily water intake and manage hydration goals."""
-    # Fetch today's water intake for the user
+    """Track water intake using NutritionTracker."""
+    tracker = NutritionTracker()
     water_intakes = WaterIntake.objects.filter(user=request.user, date=now().date())
-    total_water = sum(w.amount for w in water_intakes)  # Calculate total water consumed today
-
-    # Get or create user's water goal
-    goal, created = WaterGoal.objects.get_or_create(user=request.user)
-    daily_goal = goal.daily_goal  # Retrieve daily goal value
-
-    # Calculate progress as a percentage, capped at 100%
+    
+    # Sync database with tracker
+    for intake in water_intakes:
+        tracker.log_water(intake.amount)
+    
+    water_summary = tracker.get_water_summary()
+    total_water = water_summary['total_water_ml']
+    goal, _ = WaterGoal.objects.get_or_create(user=request.user)
+    daily_goal = goal.daily_goal
     progress = min((total_water / daily_goal) * 100, 100)
 
-    # Warn user if behind on hydration (less than 50% of goal)
     if total_water < daily_goal * 0.5:
         messages.warning(request, "You're behind on your water intake! Stay hydrated. 💧")
 
-    if request.method == "POST":  # Handle form submissions
-        if "update_goal" in request.POST:  # If updating the goal
+    if request.method == "POST":
+        if "update_goal" in request.POST:
             goal_form = WaterGoalForm(request.POST, instance=goal)
             if goal_form.is_valid():
-                goal_form.save()  # Save updated goal
+                goal_form.save()
                 messages.success(request, "Water intake goal updated! 🎯")
                 return redirect('track_water')
-        else:  # If logging water intake
+        else:
             form = WaterIntakeForm(request.POST)
             if form.is_valid():
-                water_entry = form.save(commit=False)  # Prepare entry without saving
-                water_entry.user = request.user  # Assign to current user
-                water_entry.date = now().date()  # Set current date
-                water_entry.save()  # Save to database
+                water_entry = form.save(commit=False)
+                water_entry.user = request.user
+                water_entry.date = now().date()
+                water_entry.save()
+                tracker.log_water(water_entry.amount)  # Log new entry
                 return redirect('track_water')
+    else:
+        form = WaterIntakeForm()
+        goal_form = WaterGoalForm(instance=goal)
 
-    else:  # For GET request
-        form = WaterIntakeForm()  # Empty water intake form
-        goal_form = WaterGoalForm(instance=goal)  # Pre-filled goal form
-
-    return render(request, 'nutrition/track_water.html', {  # Render water tracking template
+    return render(request, 'nutrition/track_water.html', {
         'form': form,
         'goal_form': goal_form,
         'total_water': total_water,
         'daily_goal': daily_goal,
         'progress': progress,
-        'water_intakes': water_intakes
+        'water_intakes': water_intakes,
+        'water_entries': water_summary['total_entries']
     })
 
-@login_required  # Restricts to authenticated users
+@login_required
 def weight_progress(request):
-    """Track and display user's weight history."""
-    weight_logs = WeightLog.objects.filter(user=request.user).order_by('date')  # Fetch weight logs sorted by date
+    """Track weight progress using NutritionTracker."""
+    tracker = NutritionTracker()
+    weight_logs = WeightLog.objects.filter(user=request.user).order_by('date')
     
-    if request.method == "POST":  # Handle new weight entry
+    # Sync database with tracker
+    for log in weight_logs:
+        tracker.log_weight(log.weight)
+    
+    tracker_progress = tracker.get_weight_progress()
+
+    if request.method == "POST":
         form = WeightLogForm(request.POST)
         if form.is_valid():
-            weight_entry = form.save(commit=False)  # Prepare entry without saving
-            weight_entry.user = request.user  # Assign to current user
-            weight_entry.date = now().date()  # Set current date
-            weight_entry.save()  # Save to database
+            weight_entry = form.save(commit=False)
+            weight_entry.user = request.user
+            weight_entry.date = now().date()
+            weight_entry.save()
+            tracker.log_weight(weight_entry.weight)  # Log new entry
             return redirect('weight_progress')
-    else:  # For GET request
-        form = WeightLogForm()  # Empty weight log form
+    else:
+        form = WeightLogForm()
     
-    return render(request, 'nutrition/weight_progress.html', {  # Render weight progress template
+    return render(request, 'nutrition/weight_progress.html', {
         'form': form,
-        'weight_logs': weight_logs
+        'weight_logs': weight_logs,
+        'tracker_progress': tracker_progress
     })
