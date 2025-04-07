@@ -6,7 +6,6 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/profile_info.css' %}">
 </head>
 <body>
-
     <h1>Your Profile Info</h1>
     <div class="profile-container">
         <p><strong>Username:</strong> {{ profile.user.username }}</p>
@@ -16,7 +15,7 @@
         <p><strong>Medical Conditions:</strong> {{ profile.medical_conditions }}</p>
 
         <a href="{% url 'edit_profile' %}" class="button">Edit Profile</a>
+        <a href="{% url 'meal_list' %}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">Home</a>
     </div>
-
 </body>
 </html>
